@@ -1,6 +1,6 @@
 set -x
 
-cargo build
+cargo build || exit
 
 # Install limine
 git clone https://github.com/limine-bootloader/limine.git --branch=v3.0-branch-binary --depth=1

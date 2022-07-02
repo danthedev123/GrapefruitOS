@@ -4,16 +4,18 @@
 
 mod terminal;
 mod idt;
+mod acpi;
 
 use core::{panic::PanicInfo};
 use limine::*;
 
-use crate::idt::load_idt;
+use crate::{idt::load_idt};
 
 
 static TERMINAL_REQUEST: LimineTerminalRequest = LimineTerminalRequest::new(0);
 static BOOTLOADER_INFO: LimineBootInfoRequest = LimineBootInfoRequest::new(0);
 static MEMORY_MAP: LimineMmapRequest = LimineMmapRequest::new(0);
+static RSDP: LimineRsdpRequest = LimineRsdpRequest::new(0);
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
@@ -55,6 +57,30 @@ extern "C" fn x86_64_main() -> ! {
         }
 
         println!("{} MiB", usable_mem_size / 1049000);
+
+        let rsdp_addr = &RSDP
+            .get_response()
+            .get()
+            .expect("Recieved no RSDP")
+            .address;
+
+        
+        println!("Recieved RSDP: {:#?}", rsdp_addr);
+
+        println!("Printing RSDP signature");
+
+
+        unsafe {
+            for i in 0..8 {
+                print!("{}", *(rsdp_addr.as_ptr().expect("No rsd ptr found").offset(i)) as char);
+            }
+        }
+
+        //24
+
+        unsafe {
+            print!("{}", *(rsdp_addr.as_ptr().expect("No rsd ptr found").offset(24)) as i32);
+        }
 
 
         loop {
