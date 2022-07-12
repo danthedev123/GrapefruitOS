@@ -16,6 +16,7 @@ static TERMINAL_REQUEST: LimineTerminalRequest = LimineTerminalRequest::new(0);
 static BOOTLOADER_INFO: LimineBootInfoRequest = LimineBootInfoRequest::new(0);
 static MEMORY_MAP: LimineMmapRequest = LimineMmapRequest::new(0);
 static RSDP: LimineRsdpRequest = LimineRsdpRequest::new(0);
+static ENTRY_POINT_REQUEST: LimineEntryPointRequest =  LimineEntryPointRequest::new(0);
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
@@ -81,6 +82,19 @@ extern "C" fn x86_64_main() -> ! {
         unsafe {
             print!("{}", *(rsdp_addr.as_ptr().expect("No rsd ptr found").offset(24)) as i32);
         }
+
+
+        unsafe { acpi::rsdt_init(*(rsdp_addr.as_ptr().expect("No rsd ptr found. ") as *const acpi::RSDP)) };
+
+        let entry_point = ENTRY_POINT_REQUEST
+        .get_response()
+        .get()
+        .unwrap()
+        .revision;
+        
+
+
+        println!("{}", entry_point);
 
 
         loop {
